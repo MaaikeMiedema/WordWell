@@ -1,0 +1,159 @@
+
+<style>
+
+/* Your other css */
+   body {
+         background-color: #e8f2e5;
+          background-image: url(vague_letters_light.jpg);
+      background-position: center center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+   } 
+
+ .section .reveal .state-background {
+    background-color: #3c4839;
+    background-image: url(vague_letters_dark2.jpg);
+    background-position: center center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+ }
+
+/* slide titles */
+.reveal h3 { 
+  font-size: 60px;
+  font-weight: bold;
+  color: #3c4839;
+}
+
+/* ordered and unordered list styles */
+.reveal ul, 
+.reveal ol {
+    font-size: 35px;
+    color: #3c4839;
+    list-style-type: dot;
+}
+
+.reveal section p {
+  color: #3c4839;
+}
+
+</style>
+
+
+WordWell - next word prediction 
+========================================================
+author: Maaike Miedema
+date: February, 2018
+width: 1600
+height: 900
+
+
+
+WordWell
+========================================================
+</br>
+* Application to predict the next word in an English text
+* Returns five suggestions, in descending order of likelihood
+* Shows the relative size of a suggestion's probability to the best prediction
+* In case of no matching prediction: suggests the most frequent words: the-to-and-a-of 
+</br>
+</br>
+<img src="ScreenShot.png"> </img>
+
+
+The Data 
+========================================================
+</br>
+ * Three source types: news, blogs and twitter messages.
+ * 70% of data used to train prediction model
+ * Removed: foul language, emoticons, numbers, symbols
+ * Size reduction: 
+</br> - 58,000 words cover about 97.5% of the text (word frequency in training data >=18)
+</br> - only word combinations with frequency >=3 
+ * Size of data : 3.9 million unique word combinations consisting of two to six words 
+ 
+Prediction algorithm: Linear Interpolation   
+========================================================
+</br> 
+ * Prediction is based on five (or less) previous words 
+ * The user enters a  five word sequence "w<sub>1</sub> w<sub>2</sub> w<sub>3</sub> w<sub>4</sub> w<sub>5</sub> ", 
+ the word to predict is w<sub>6</sub>
+ * The score of w<sub>6</sub> depends on the scores of the sequences w<sub>1</sub> ... w<sub>6</sub> , 
+ w<sub>2</sub> ... w<sub>6</sub> , ... , w<sub>5</sub> w<sub>6</sub> and w<sub>6</sub> as follows:
+</br>
+$$ S(w_6|w_{1}..w_5) = \sum_{i=1}^{5} \lambda_i S(w_6|w_i...w_5)+\lambda_6 S(w_6) \text{, with}$$
+$$ S(w_6|w_i...w_5) = C(w_i...w_6)/C(w_i...w_5) \text{, and}$$
+$$ S(w_6)= C(w_6)/N$$ 
+</br>
+*S* is the score, *C* the count of a word combination and *N* the total word count in the corpus
+</br>
+</br>
+Notes: 
+</br>
+1. When less than five words are given, say k, one doesn't count word combinations of size larger than k (counts are zero)
+2. After some accuracy tests chosen for lambda: lambda = (3, 6, 6, 3, 1, 1)
+Accuracy
+========================================================
+The accuracy of WordWell was estimated by taking random samples of word combinations from non-cleaned data. When the app returns 5 suggestions, using 5 words to predict, the correct word is suggested in 16% of the cases. 
+
+```{r, echo = FALSE}
+library(ggplot2)
+accuracy<- readRDS("accuracy.rds")
+ggplot(data=accuracy, aes(x=nrWords, y=percentageRight, group=nrPredicted, color=nrPredicted)) +
+      geom_line(size = 1.2) +
+      geom_point()+
+      theme_minimal()+
+      labs(x = "Number of words used for prediction", y = "Accuracy (%)")+
+      scale_color_discrete(name  ="Number of Suggestions",
+                          breaks=c("predictFive", "predictThree", "predictOne"),
+                          labels=c("5", "3", "1" ))
+
+```
+</br>
+Notes: 
+</br>
+1. In hindsight: word combinations of four words perform nearly as well as word combinations of five words
+</br>
+2. To investigate: accuracy of other algorithms, like Generalized Language Model and/or Kneser-Ney smoothing
+</br>
+3. In total 50,000 samples taken: 10,000 2-, 3-, 4-, 5-, and 6-word combinations
+
+Try it!
+========================================================
+</br>
+<img src="ScreenShot2.png"> </img>
+</br>
+Run the app at https://maaikemiedema.shinyapps.io/WordWell/
+
+How to use: 
+* Type or insert text in text field followed by a space.
+* Select one of the five suggested predictions: 
+the next prediction will appear -or- type your own next word
+
+To start again: hit the "clear" button
+
+ 
+ 
+
+Finally...
+========================================================
+</br>
+WordWell has been built as part of the Capstone Project of Coursera's Data Science Specialization by the Johns Hopkins University. 
+You can find the code for WordWell at my GitHub account: https://github.com/MaaikeMiedema/WordWell. 
+</br>
+</br>
+The following resources have been useful for me: 
+</br>
+ [Chapter 4](https://web.stanford.edu/~jurafsky/slp3/4.pdf) of the book "Speech and Language Processing", by Daniel Jurafsky & James H. Martin 
+</br>
+ [Bachelor Thesis](https://west.uni-koblenz.de/sites/default/files/BachelorArbeit_MartinKoerner.pdf) on Modified Kneser-Ney smoothing and Generalized Language Models, by Martin Koerner
+</br>
+[Blog post](http://smithamilli.com/blog/kneser-ney/) on Kneser-Ney Smoothing, by Smitha Milli
+</br>
+</br>
+And last but certainly not least: A big thank you to all contributors to the Data Science Specialization: staff, mentors and students and to the R-community for developing packages and sharing their code and insights. 
+</br>
+</br>
+Thank you all!
